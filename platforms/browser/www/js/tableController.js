@@ -7,42 +7,37 @@ var TCAttr = {
 		ADD:"ADD",
 		EDIT:"EDIT",
 		DEL:"DEL",
+		// ↓ページング
 		TOP:"TOP",
 		BACK:"BACK",
 		PAGE:"PAGE",
 		NEXT:"NEXT",
 		LAST:"LAST"
-	},
-	SETTING:{
-		BUTTON_FUNC:"BUTTON_FUNC",
-		PRIMARY_KEY:"PRIMARY_KEY",
-		PARENT_OBJ:"PARENT_OBJ",
-		ADD_KEY_LIST:"ADD_KEY_LIST",
-		TITLE_LIST:"TITLE_LIST",
-		MAX_LENGTH:"MAX_LENGTH"
 	}
 };
 
-var TableController = function(mapList, settingMap) {
+var TableController = function(mapList, settingInfo) {
     TC_PRI = {};
     TC_PUB = this;
 
     TC_PRI.mapList = {};
-    TC_PRI.settingMap = {};
     TC_PRI.currentPage = 0;
     TC_PRI.maxPage = 0;
     TC_PRI.buttonMap = {};
+    TC_PRI.settingInfo;
 
     TC_PUB.createButton = function() {
         // 追加ボタンを追加
     	var maxKey = TC_PUB.getMaxPrimaryKey();
         var addButtonId = COMMON.Event.ADD_BUTTON_ID_PREFIX + (maxKey + 1);
-        var addButton = COMMON.TagUtil.Create.newButton(addButtonId, "追加", function(){
+
+        var buttonInfoMap = TC_PRI.settingInfo.buttonInfoMap;
+        var addButtonSetting = buttonInfoMap[TCAttr.BUTTON.ADD];
+        var addButton = COMMON.TagUtil.Create.newButton(addButtonId, addButtonSetting.text, function(){
             var id = $(this).attr('id');
             id = id.replace(COMMON.Event.ADD_BUTTON_ID_PREFIX, "");
-        	var buttonFuncMap = TC_PRI.settingMap[TCAttr.SETTING.BUTTON_FUNC];
-            buttonFuncMap[TCAttr.BUTTON.ADD](id);
-        });
+        	addButtonSetting.func(id);
+        }, addButtonSetting.cls);
         TC_PRI.buttonMap[TCAttr.BUTTON.ADD] = addButton;
         // 前へボタンを追加
         var topButton = COMMON.TagUtil.Create.newButton("topButton", "<<", function() {
@@ -72,10 +67,9 @@ var TableController = function(mapList, settingMap) {
     };
 
     TC_PUB.createDataTable = function(pageNum) {
-    	var buttonFuncMap = TC_PRI.settingMap[TCAttr.SETTING.BUTTON_FUNC];
-    	var primaryKey = TC_PRI.settingMap[TCAttr.SETTING.PRIMARY_KEY];
-    	var addKeyList = TC_PRI.settingMap[TCAttr.SETTING.ADD_KEY_LIST];
-    	var titleList = TC_PRI.settingMap[TCAttr.SETTING.TITLE_LIST];
+    	var buttonFuncMap = TC_PRI.settingInfo.buttonFuncMap;
+    	var primaryKey = TC_PRI.settingInfo.key;
+    	var columnInfoList = TC_PRI.settingInfo.columnInfoList;
     	var dataTableId = TCAttr.PREFIX.CLASS + "base";
     	// 前のテーブルを削除する
     	var oldTableObj = $("#" + dataTableId);
@@ -83,20 +77,28 @@ var TableController = function(mapList, settingMap) {
     	// テーブルを新規作成
     	var dataTableObj = $("<table>");
     	dataTableObj.attr("id", dataTableId);
-    	dataTableObj.attr("border", "2");
+    	dataTableObj.attr("border", "solid 10px #FFFFFF");
+    	dataTableObj.attr("data-role", "table");
+    	dataTableObj.attr("data-mode", "columntoggle");
+    	dataTableObj.addClass("ui-responsive");
+    	dataTableObj.addClass("table-stripe");
         // タイトルTRを作成
-        var titleObj = $("<tr>");
-        titleObj.attr("id", "dataTitleTr");
-        for(var i in titleList) {
-            var titleTd = COMMON.TagUtil.addSpanTd(titleObj, titleList[i], "");
+        var theadObj = $("<thead>");
+        var titleTrObj = $("<tr>");
+        titleTrObj.attr("id", "dataTitleTr");
+        for(var i in columnInfoList) {
+            var thObj = $("<th>");
+            var titleTd = COMMON.TagUtil.addSpanTd(thObj, columnInfoList[i].title, "");
             titleTd.attr("text-align", "center");
+            titleTrObj.append(thObj);
         }
-        dataTableObj.append(titleObj);
+        theadObj.append(titleTrObj);
+        dataTableObj.append(theadObj);
 
         /* ここからページ関連 */
         TC_PRI.currentPage = pageNum;
         var listLength = Object.keys(TC_PRI.mapList).length;
-    	var maxLength = TC_PRI.settingMap[TCAttr.SETTING.MAX_LENGTH];
+    	var maxLength = TC_PRI.settingInfo.max;
     	if(!maxLength) {
     		maxLength = listLength;
     	}
@@ -105,39 +107,47 @@ var TableController = function(mapList, settingMap) {
     	if(end > listLength) {
     		end = listLength;
     	}
+
+        var buttonInfoMap = TC_PRI.settingInfo.buttonInfoMap;
+        var editButtonSetting = buttonInfoMap[TCAttr.BUTTON.EDIT];
+        var delButtonSetting = buttonInfoMap[TCAttr.BUTTON.DEL];
+
+        var tbodyObj = $("<tbody>");
     	for (var i = start; i < end; i++) {
             var dataMap = TC_PRI.mapList[i];
             var id = dataMap[primaryKey];
             var trObj = $("<tr>");
             trObj.attr("id", TCAttr.PREFIX.CLASS + "tr_" + id);
-            for(var j in addKeyList) {
-            	var key = addKeyList[j];
+            for(var j in columnInfoList) {
+            	var key = columnInfoList[j].bindKey;
             	var value = dataMap[key];
                 COMMON.TagUtil.addSpanTd(trObj, value, TCAttr.PREFIX.CLASS + key + "_" + id);
             }
 
             // 編集ボタンを追加
             var editButtonId = COMMON.Event.EDIT_BUTTON_ID_PREFIX + id;
-            var editButton = COMMON.TagUtil.Create.newButton(editButtonId, "編集", function(){
+            var editButton = COMMON.TagUtil.Create.newButton(editButtonId, editButtonSetting.text, function(){
                 var id = $(this).attr('id');
                 id = id.replace(COMMON.Event.EDIT_BUTTON_ID_PREFIX, "");
-                buttonFuncMap[TCAttr.BUTTON.EDIT](id);
-            });
+                editButtonSetting.func(id);
+            }, editButtonSetting.cls);
             COMMON.TagUtil.appendChildAtTr(trObj, editButton);
             // 削除ボタンを追加
             var deleteButtonId = COMMON.Event.DELETE_BUTTON_ID_PREFIX + id;
-            var deleteButton = COMMON.TagUtil.Create.newButton(deleteButtonId, "削除", function(){
+            var deleteButton = COMMON.TagUtil.Create.newButton(deleteButtonId, delButtonSetting.text, function(){
                 var id = $(this).attr('id');
                 id = id.replace(COMMON.Event.DELETE_BUTTON_ID_PREFIX, "");
-                
+
                 if (confirm(id + "を削除してよろしいですか？")) {
-                    buttonFuncMap[TCAttr.BUTTON.DEL](id);
+                	delButtonSetting.func(id);
                 }
-            });
+            }, delButtonSetting.cls);
             COMMON.TagUtil.appendChildAtTr(trObj, deleteButton);
-            dataTableObj.append(trObj);
+            var theadObj = $("<thead>");
+            tbodyObj.append(trObj);
         }
-    	var parentObj = TC_PRI.settingMap[TCAttr.SETTING.PARENT_OBJ];
+        dataTableObj.append(tbodyObj);
+    	var parentObj = TC_PRI.settingInfo.parent;
     	parentObj.append(dataTableObj);
     	// ボタン情報更新
     	TC_PRI.modifyButton();
@@ -167,7 +177,7 @@ var TableController = function(mapList, settingMap) {
     };
 
     TC_PUB.getMaxPrimaryKey = function() {
-    	var primaryKey = TC_PRI.settingMap[TCAttr.SETTING.PRIMARY_KEY];
+    	var primaryKey = TC_PRI.settingInfo.key;
         var max = 0;
     	for (var i in TC_PRI.mapList) {
             var dataMap = TC_PRI.mapList[i];
@@ -181,16 +191,57 @@ var TableController = function(mapList, settingMap) {
 
     TC_PRI.getMaxPage = function() {
         var listLength = Object.keys(TC_PRI.mapList).length;
-    	var maxLength = TC_PRI.settingMap[TCAttr.SETTING.MAX_LENGTH];
+    	var maxLength = TC_PRI.settingInfo.max;
     	var maxPage = Math.ceil(listLength / maxLength);
     	return maxPage;
     };
 
     new function() {
         TC_PRI.mapList = mapList;
-        TC_PRI.settingMap = settingMap;
+        TC_PRI.settingInfo = settingInfo;
         TC_PRI.maxPage = TC_PRI.getMaxPage();
         // ボタン作成
         TC_PUB.createButton();
     };
+};
+
+
+/**
+ * テーブル設定情報
+ * parent 親OBJ
+ * max 最大表示数
+ * key 主キー
+ * columnInfoList テーブルカラム設定情報一覧
+ * buttonInfoMap ボタン設定情報マップ
+*/
+function TableSettingInfo(parent, max, key) {
+    this.parent = parent;
+    this.max = max;
+    this.key = key;
+    this.columnInfoList = [];
+    this.buttonInfoMap = {};
+};
+
+/**
+ * テーブルカラム設定情報
+ * title タイトル
+ * bindKey バインドキー
+*/
+function ColumnSettingInfo(title, bindKey) {
+    this.title = title;
+    this.bindKey = bindKey;
+};
+
+/**
+ * ボタン設定情報
+ * id ID
+ * text 文字
+ * cls クラス
+ * func 処理
+*/
+function ButtonSettingInfo(id, text, cls, func) {
+    this.id = id;
+    this.text = text;
+    this.cls = cls;
+    this.func = func;
 };

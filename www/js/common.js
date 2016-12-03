@@ -69,98 +69,6 @@ var COMMON = {
     		return Number(sliceStr);
     	}
     },
-    Tag: {
-		addSpanTd: function(parent, value, id) {
-	        var span = this.Create.newSpan(value, name);
-	        return this.appendChildAtTr(parent, span);
-	    },
-	    addTextBoxTd: function(parent, value, id, cls) {
-	        var inputText = this.Create.newInput("text", value, id, cls);
-	        return this.appendChildAtTr(parent, inputText);
-	    },
-	    addNumberTextBoxTd: function(parent, value, id, cls) {
-	        var inputText = this.Create.newInput("number", value, id, cls);
-	        return this.appendChildAtTr(parent, inputText);
-	    },
-	    addRadioBoxTd: function(parent, value, name, func) {
-	        var inputText = this.Create.newRadioBoxTd(value, name, func);
-	        return this.appendChildAtTr(parent, inputText);
-	    },
-	    addAInLi: function(parent, id, href, text) {
-	        var aElem = this.Create.newA(id, href, text);
-	        return this.appendChildAtOl(parent, aElem);
-	    },
-	    appendChildAtOl: function(ol, child) {
-	        var li = $("<li>");
-	        ol.append(li.append(child));
-	        return li;
-	    },
-	    appendChildAtTr: function(tr, child) {
-	        var td = $("<td>");
-	        tr.append(td.append(child));
-	        return td;
-	    },
-	    createDataTable: function() {
-	    	var tableObj = this.Create.newTable("dataTable");
-	    	tableObj.attr("border", "2");
-	    	return tableObj;
-	    },
-	    Create: {
-	        newSpan: function(value, id) {
-	            var span = $("<span>");
-	            span.attr("id", id);
-	            span.text(value);
-	            return span;
-	        },
-	        newInput: function(type, value, id, cls) {
-	            var inputText = $("<input>");
-	            inputText.attr("type", type);
-	            inputText.attr("id", id);
-	            inputText.addClass(cls);
-	            inputText.val(value);
-	            return inputText;
-	        },
-	        newSelectBox: function(valueTextMap, id) {
-	            var selectElem = $("<select>");
-	            selectElem.attr("id", id);
-	            for(var value in valueTextMap) {
-	                var text = valueTextMap[value];
-	                var optionElem = $("<option>");
-	                optionElem.val(value);
-	                optionElem.text(text);
-	                selectElem.append(optionElem);
-	            }
-	            return selectElem;
-	        },
-	        newRadioBoxTd: function(value, name, func) {
-	            var inputText = $("<input>");
-	            inputText.attr("type", "radio");
-	            inputText.attr("name", name);
-	            inputText.val(value);
-	            inputText.on("change", func);
-	            return inputText;
-	        },
-	        newButton: function(id, text, func) {
-	            var jbutton = $("<button>");
-	            jbutton.attr("id", id);
-	            jbutton.text(text);
-	            jbutton.on("click", func);
-	            return jbutton;
-	        },
-	        newA: function(id, href, text) {
-	            var aElem = $("<a>");
-	            aElem.attr("id", id);
-	            aElem.attr("href", href);
-	            aElem.text(text);
-	            return aElem;
-	        },
-	        newTable: function(id) {
-	            var tableElem = $("<table>");
-	            tableElem.attr("id", id);
-	            return tableElem;
-	        }
-	    }
-    },
     locStorage: {
         is: function(key) {
             return localStorage[key] != undefined;
@@ -320,11 +228,12 @@ var COMMON = {
 	            inputText.on("change", func);
 	            return inputText;
 	        },
-	        newButton: function(id, text, func) {
+		    newButton: function(id, text, func, cls) {
 	            var jbutton = $("<button>");
 	            jbutton.attr("id", id);
 	            jbutton.text(text);
 	            jbutton.on("click", func);
+	            jbutton.addClass(cls);
 	            return jbutton;
 	        },
 	        newA: function(id, href, text) {

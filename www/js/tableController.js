@@ -30,12 +30,14 @@ var TableController = function(mapList, settingInfo) {
         // 追加ボタンを追加
     	var maxKey = TC_PUB.getMaxPrimaryKey();
         var addButtonId = COMMON.Event.ADD_BUTTON_ID_PREFIX + (maxKey + 1);
-        var addButton = COMMON.TagUtil.Create.newButton(addButtonId, "追加", function(){
+
+        var buttonInfoMap = TC_PRI.settingInfo.buttonInfoMap;
+        var addButtonSetting = buttonInfoMap[TCAttr.BUTTON.ADD];
+        var addButton = COMMON.TagUtil.Create.newButton(addButtonId, addButtonSetting.text, function(){
             var id = $(this).attr('id');
             id = id.replace(COMMON.Event.ADD_BUTTON_ID_PREFIX, "");
-        	var buttonFuncMap = TC_PRI.settingInfo.buttonFuncMap;
-            buttonFuncMap[TCAttr.BUTTON.ADD](id);
-        });
+        	addButtonSetting.func(id);
+        }, addButtonSetting.cls);
         TC_PRI.buttonMap[TCAttr.BUTTON.ADD] = addButton;
         // 前へボタンを追加
         var topButton = COMMON.TagUtil.Create.newButton("topButton", "<<", function() {
@@ -105,6 +107,11 @@ var TableController = function(mapList, settingInfo) {
     	if(end > listLength) {
     		end = listLength;
     	}
+
+        var buttonInfoMap = TC_PRI.settingInfo.buttonInfoMap;
+        var editButtonSetting = buttonInfoMap[TCAttr.BUTTON.EDIT];
+        var delButtonSetting = buttonInfoMap[TCAttr.BUTTON.DEL];
+
         var tbodyObj = $("<tbody>");
     	for (var i = start; i < end; i++) {
             var dataMap = TC_PRI.mapList[i];
@@ -119,22 +126,22 @@ var TableController = function(mapList, settingInfo) {
 
             // 編集ボタンを追加
             var editButtonId = COMMON.Event.EDIT_BUTTON_ID_PREFIX + id;
-            var editButton = COMMON.TagUtil.Create.newButton(editButtonId, "編集", function(){
+            var editButton = COMMON.TagUtil.Create.newButton(editButtonId, editButtonSetting.text, function(){
                 var id = $(this).attr('id');
                 id = id.replace(COMMON.Event.EDIT_BUTTON_ID_PREFIX, "");
-                buttonFuncMap[TCAttr.BUTTON.EDIT](id);
-            });
+                editButtonSetting.func(id);
+            }, editButtonSetting.cls);
             COMMON.TagUtil.appendChildAtTr(trObj, editButton);
             // 削除ボタンを追加
             var deleteButtonId = COMMON.Event.DELETE_BUTTON_ID_PREFIX + id;
-            var deleteButton = COMMON.TagUtil.Create.newButton(deleteButtonId, "削除", function(){
+            var deleteButton = COMMON.TagUtil.Create.newButton(deleteButtonId, delButtonSetting.text, function(){
                 var id = $(this).attr('id');
                 id = id.replace(COMMON.Event.DELETE_BUTTON_ID_PREFIX, "");
 
                 if (confirm(id + "を削除してよろしいですか？")) {
-                    buttonFuncMap[TCAttr.BUTTON.DEL](id);
+                	delButtonSetting.func(id);
                 }
-            });
+            }, delButtonSetting.cls);
             COMMON.TagUtil.appendChildAtTr(trObj, deleteButton);
             var theadObj = $("<thead>");
             tbodyObj.append(trObj);
@@ -205,14 +212,14 @@ var TableController = function(mapList, settingInfo) {
  * max 最大表示数
  * key 主キー
  * columnInfoList テーブルカラム設定情報一覧
- * buttonFuncMap ボタン処理マップ
+ * buttonInfoMap ボタン設定情報マップ
 */
 function TableSettingInfo(parent, max, key) {
     this.parent = parent;
     this.max = max;
     this.key = key;
     this.columnInfoList = [];
-    this.buttonFuncMap = {};
+    this.buttonInfoMap = {};
 };
 
 /**
@@ -223,4 +230,18 @@ function TableSettingInfo(parent, max, key) {
 function ColumnSettingInfo(title, bindKey) {
     this.title = title;
     this.bindKey = bindKey;
+};
+
+/**
+ * ボタン設定情報
+ * id ID
+ * text 文字
+ * cls クラス
+ * func 処理
+*/
+function ButtonSettingInfo(id, text, cls, func) {
+    this.id = id;
+    this.text = text;
+    this.cls = cls;
+    this.func = func;
 };
