@@ -67,9 +67,6 @@ var TableController = function(mapList, settingInfo) {
     };
 
     TC_PUB.createDataTable = function(pageNum) {
-    	var buttonFuncMap = TC_PRI.settingInfo.buttonFuncMap;
-    	var primaryKey = TC_PRI.settingInfo.key;
-    	var columnInfoList = TC_PRI.settingInfo.columnInfoList;
     	var dataTableId = TCAttr.PREFIX.CLASS + "base";
     	// 前のテーブルを削除する
     	var oldTableObj = $("#" + dataTableId);
@@ -86,6 +83,7 @@ var TableController = function(mapList, settingInfo) {
         var theadObj = $("<thead>");
         var titleTrObj = $("<tr>");
         titleTrObj.attr("id", "dataTitleTr");
+    	var columnInfoList = TC_PRI.settingInfo.columnInfoList;
         for(var i in columnInfoList) {
             var thObj = $("<th>");
             var titleTd = COMMON.TagUtil.addSpanTd(thObj, columnInfoList[i].title, "");
@@ -108,10 +106,10 @@ var TableController = function(mapList, settingInfo) {
     		end = listLength;
     	}
 
+    	var primaryKey = TC_PRI.settingInfo.key;
         var buttonInfoMap = TC_PRI.settingInfo.buttonInfoMap;
         var editButtonSetting = buttonInfoMap[TCAttr.BUTTON.EDIT];
         var delButtonSetting = buttonInfoMap[TCAttr.BUTTON.DEL];
-
         var tbodyObj = $("<tbody>");
     	for (var i = start; i < end; i++) {
             var dataMap = TC_PRI.mapList[i];
@@ -137,10 +135,7 @@ var TableController = function(mapList, settingInfo) {
             var deleteButton = COMMON.TagUtil.Create.newButton(deleteButtonId, delButtonSetting.text, function(){
                 var id = $(this).attr('id');
                 id = id.replace(COMMON.Event.DELETE_BUTTON_ID_PREFIX, "");
-
-                if (confirm(id + "を削除してよろしいですか？")) {
-                	delButtonSetting.func(id);
-                }
+                delButtonSetting.func(id);
             }, delButtonSetting.cls);
             COMMON.TagUtil.appendChildAtTr(trObj, deleteButton);
             var theadObj = $("<thead>");

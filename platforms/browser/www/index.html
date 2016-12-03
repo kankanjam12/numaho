@@ -1,63 +1,111 @@
 <!DOCTYPE html>
-<!--
-    Copyright (c) 2012-2016 Adobe Systems Incorporated. All rights reserved.
-
-    Licensed to the Apache Software Foundation (ASF) under one
-    or more contributor license agreements.  See the NOTICE file
-    distributed with this work for additional information
-    regarding copyright ownership.  The ASF licenses this file
-    to you under the Apache License, Version 2.0 (the
-    "License"); you may not use this file except in compliance
-    with the License.  You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing,
-    software distributed under the License is distributed on an
-    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-     KIND, either express or implied.  See the License for the
-    specific language governing permissions and limitations
-    under the License.
--->
 <html>
+    <head>
+	    <meta charset="utf-8" />
+	    <meta name="format-detection" content="telephone=no" />
+	    <meta name="msapplication-tap-highlight" content="no" />
+	    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width" />
+        <title>家計一覧</title>
+        <link rel="stylesheet" type="text/css" href="css/index.css" />
+        <link rel="stylesheet" type="text/css" href="css/kakeibo.css" />
+        <link rel="stylesheet" type="text/css" href="spec/lib/jquery.mobile-1.4.5/jquery.mobile-1.4.5.min.css">
+	    <script src="spec/lib/jquery.mobile-1.4.5/jquery-3.1.1.min.js"></script>
+	    <script src="spec/lib/jquery.mobile-1.4.5/jquery.mobile-1.4.5.min.js"></script>
+	    <script src="cordova.js"></script>
+        <script src="js/jquery.cookie.js"></script>
+        <script src="js/common.js"></script>
+        <script src="js/kakeiData.js"></script>
+        <script src="js/tableController.js"></script>
+        <script>
+			var m_kakeiInfoList = [];
+			var m_kakeiInfoMap = {};
+    	
+        	document.addEventListener("deviceready", onDeviceReady, false);
+        	function onDeviceReady() {
+	        	var kakeiData = localStorage["kakei"];
+	        	if(kakeiData) {
+		        	var jsonData = JSON.parse(kakeiData);
+		            for(var i in jsonData) {
+		                var kakeiData = jsonData[i];
+		                var kakeiInfo = new KakeiInfo(kakeiData.id, kakeiData.addDate, kakeiData.item, kakeiData.price, kakeiData.category);
+		                m_kakeiInfoList.push(kakeiInfo);
+		                m_kakeiInfoMap[kakeiInfo.id] = kakeiInfo;
+		            }
+	        	}
+	        	createTable();
+	        };
 
-<head>
-    <meta charset="utf-8" />
-    <meta name="format-detection" content="telephone=no" />
-    <meta name="msapplication-tap-highlight" content="no" />
-    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width" />
-    <!-- This is a wide open CSP declaration. To lock this down for production, see below. -->
-    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline'; style-src 'self' 'unsafe-inline'; media-src *" />
-    <!-- Good default declaration:
-    * gap: is required only on iOS (when using UIWebView) and is needed for JS->native communication
-    * https://ssl.gstatic.com is required only on Android and is needed for TalkBack to function properly
-    * Disables use of eval() and inline scripts in order to mitigate risk of XSS vulnerabilities. To change this:
-        * Enable inline JS: add 'unsafe-inline' to default-src
-        * Enable eval(): add 'unsafe-eval' to default-src
-    * Create your own at http://cspisawesome.com
-    -->
-    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: 'unsafe-inline' https://ssl.gstatic.com; style-src 'self' 'unsafe-inline'; media-src *" /> -->
+            // メモリのデータから表示テーブルを作成
+            function createTable() {
+	            // ボタン処理設定
+	            var buttonInfoMap = {};
+	            buttonInfoMap[TCAttr.BUTTON.ADD] = new ButtonSettingInfo(TCAttr.BUTTON.ADD, "追加", "ui-btn ui-icon-forward ui-btn-icon-left ui-corner-all ui-btn-b", function(id) {
+                    var param = "id=" + id;
+                    COMMON.Event.moveEditPage("addSheet.html", [param]);
+	            });
+	            buttonInfoMap[TCAttr.BUTTON.EDIT] = new ButtonSettingInfo(TCAttr.BUTTON.EDIT, "編集", "tableButton ui-corner-all ui-btn-b", function(id) {
+                      var param = "id=" + id;
+                      COMMON.Event.moveEditPage("addSheet.html", [param]);
+	            });
+	            buttonInfoMap[TCAttr.BUTTON.DEL] = new ButtonSettingInfo(TCAttr.BUTTON.DEL, "削除", "tableButton ui-corner-all ui-btn-b", function(id) {
+	            	var selectInfo = m_kakeiInfoMap[id];
+	                if (confirm(selectInfo.item + "を削除してよろしいでしょうか？")) {
+	                    var newKakeiInfoList = [];
+			            for(var i in m_kakeiInfoList) {
+				            var kakeiInfo = m_kakeiInfoList[i];
+				            if(selectInfo != kakeiInfo)
+			                	newKakeiInfoList.push(kakeiInfo);
+			            }
+			            localStorage["kakei"] = window.JSON.stringify(newKakeiInfoList);
+	                    location.reload();
+	                }
+	            });
+	            
+	            var settingInfo = new TableSettingInfo($("#dataTable"), 20, "id");
+                // テーブル表示情報設定
+				var columnInfoList = [];
+				//columnInfoList.push(new ColumnSettingInfo("No", "id"));
+				columnInfoList.push(new ColumnSettingInfo("日付", "addDate"));
+	            columnInfoList.push(new ColumnSettingInfo("項目", "item"));
+	            columnInfoList.push(new ColumnSettingInfo("値段", "price"));
+	            columnInfoList.push(new ColumnSettingInfo("カテゴリ", "category"));
+                settingInfo.columnInfoList = columnInfoList;
+                settingInfo.buttonInfoMap = buttonInfoMap;
 
-    <link rel="stylesheet" type="text/css" href="css/index.css" />
-    <title>Hello World</title>
-</head>
+	            var controller = new TableController(m_kakeiInfoList, settingInfo);
+	            controller.createDataTable(0);
 
-<body>
-    <div class="app">
-        <h1>PhoneGap</h1>
-        <div id="deviceready" class="blink">
-            <p class="event listening">Connecting to Device</p>
-            <p class="event received">Device is Ready</p>
-            <p>ates</p>
-            <a href="./addSheet.html">addSheet</a>
-            <a href="./kakeiList.html">家計一覧</a>
-        </div>
-    </div>
-    <script type="text/javascript" src="cordova.js"></script>
-    <script type="text/javascript" src="js/index.js"></script>
-    <script type="text/javascript">
-        app.initialize();
-    </script>
-</body>
-
+	            // 移動ボタンを追加
+	            $("#moveButton").append(controller.getButtonByKey(TCAttr.BUTTON.TOP));
+	            $("#moveButton").append(controller.getButtonByKey(TCAttr.BUTTON.BACK));
+	            $("#moveButton").append(controller.getButtonByKey(TCAttr.BUTTON.PAGE));
+	            $("#moveButton").append(controller.getButtonByKey(TCAttr.BUTTON.NEXT));
+	            $("#moveButton").append(controller.getButtonByKey(TCAttr.BUTTON.LAST));
+	            // 追加ボタンを追加
+	            var addButtonObj = controller.getButtonByKey(TCAttr.BUTTON.ADD);
+	            $("#buttonArea").prepend(addButtonObj);
+	        };
+        </script>
+    </head>
+    <body>
+    	<div data-role="header" id="addSheetHeader">
+			<h1>家計一覧</h1>
+		</div>
+        <div data-role="body">
+	        <section id="dataTableSection">
+		        <div id="dataTable"></div>
+		        <div id="moveButton"></div>
+		    </section>
+		</div>
+        <div data-role="footer" id="footer-1">
+			<table>
+				<tr>
+					<td id="buttonArea"></td>
+					<td>
+						<a href="javascript:history.back()" id="cancelButton" class="ui-btn ui-icon-back ui-btn-icon-left ui-corner-all ui-btn-b">戻る</a>
+					</td>
+				</tr>
+			</table>
+		</div>
+    </body>
 </html>

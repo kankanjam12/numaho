@@ -11,13 +11,27 @@
         <link rel="stylesheet" type="text/css" href="spec/lib/jquery.mobile-1.4.5/jquery.mobile-1.4.5.min.css">
 	    <script src="spec/lib/jquery.mobile-1.4.5/jquery-3.1.1.min.js"></script>
 	    <script src="spec/lib/jquery.mobile-1.4.5/jquery.mobile-1.4.5.min.js"></script>
+	    <script src="cordova.js"></script>
         <script src="js/jquery.cookie.js"></script>
         <script src="js/common.js"></script>
         <script src="js/kakeiData.js"></script>
         <script src="js/tableController.js"></script>
         <script>
+			var m_kakeiInfoList = [];
+			var m_kakeiInfoMap = {};
+    	
         	document.addEventListener("deviceready", onDeviceReady, false);
         	function onDeviceReady() {
+	        	var kakeiData = localStorage["kakei"];
+	        	if(kakeiData) {
+		        	var jsonData = JSON.parse(kakeiData);
+		            for(var i in jsonData) {
+		                var kakeiData = jsonData[i];
+		                var kakeiInfo = new KakeiInfo(kakeiData.id, kakeiData.addDate, kakeiData.item, kakeiData.price, kakeiData.category);
+		                m_kakeiInfoList.push(kakeiInfo);
+		                m_kakeiInfoMap[kakeiInfo.id] = kakeiInfo;
+		            }
+	        	}
 	        	createTable();
 	        };
 
@@ -34,16 +48,23 @@
                       COMMON.Event.moveEditPage("addSheet.html", [param]);
 	            });
 	            buttonInfoMap[TCAttr.BUTTON.DEL] = new ButtonSettingInfo(TCAttr.BUTTON.DEL, "削除", "tableButton ui-corner-all ui-btn-b", function(id) {
-                    //var deleteUser = m_gameDateInfo.deleteUserInfo(id);
-                    //if(deleteUser) {
-                    //    location.reload();
-                    //}
+	            	var selectInfo = m_kakeiInfoMap[id];
+	                if (confirm(selectInfo.item + "を削除してよろしいでしょうか？")) {
+	                    var newKakeiInfoList = [];
+			            for(var i in m_kakeiInfoList) {
+				            var kakeiInfo = m_kakeiInfoList[i];
+				            if(selectInfo != kakeiInfo)
+			                	newKakeiInfoList.push(kakeiInfo);
+			            }
+			            localStorage["kakei"] = window.JSON.stringify(newKakeiInfoList);
+	                    location.reload();
+	                }
 	            });
 	            
 	            var settingInfo = new TableSettingInfo($("#dataTable"), 20, "id");
                 // テーブル表示情報設定
 				var columnInfoList = [];
-				columnInfoList.push(new ColumnSettingInfo("No", "id"));
+				//columnInfoList.push(new ColumnSettingInfo("No", "id"));
 				columnInfoList.push(new ColumnSettingInfo("日付", "addDate"));
 	            columnInfoList.push(new ColumnSettingInfo("項目", "item"));
 	            columnInfoList.push(new ColumnSettingInfo("値段", "price"));
@@ -51,17 +72,7 @@
                 settingInfo.columnInfoList = columnInfoList;
                 settingInfo.buttonInfoMap = buttonInfoMap;
 
-	            var kakeiInfoList = [];
-	        	var kakeiData = localStorage["kakei"];
-	        	if(kakeiData) {
-		        	var jsonData = JSON.parse(kakeiData);
-		            for(var i in jsonData) {
-		                var kakeiData = jsonData[i];
-		                var kakeiInfo = new KakeiInfo(kakeiData.id, kakeiData.addDate, kakeiData.item, kakeiData.price, kakeiData.category);
-		                kakeiInfoList.push(kakeiInfo);
-		            }
-	        	}
-	            var controller = new TableController(kakeiInfoList, settingInfo);
+	            var controller = new TableController(m_kakeiInfoList, settingInfo);
 	            controller.createDataTable(0);
 
 	            // 移動ボタンを追加
@@ -89,16 +100,12 @@
         <div data-role="footer" id="footer-1">
 			<table>
 				<tr>
-					<td id="buttonArea">
-						<!-- <a href="addSheet.html" class="ui-btn ui-icon-forward ui-btn-icon-left ui-corner-all ui-btn-b"  style="width:100px">追加</a> -->
-					</td>
+					<td id="buttonArea"></td>
 					<td>
 						<a href="javascript:history.back()" id="cancelButton" class="ui-btn ui-icon-back ui-btn-icon-left ui-corner-all ui-btn-b">戻る</a>
 					</td>
 				</tr>
 			</table>
 		</div>
-        
-	    <script type="text/javascript" src="cordova.js"></script>
     </body>
 </html>
