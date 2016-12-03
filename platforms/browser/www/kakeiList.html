@@ -9,10 +9,11 @@
         <link rel="stylesheet" type="text/css" href="css/index.css" />
         <link rel="stylesheet" type="text/css" href="css/kakeibo.css" />
         <link rel="stylesheet" type="text/css" href="spec/lib/jquery.mobile-1.4.5/jquery.mobile-1.4.5.min.css">
-	    <script type="application/javascript" src="spec/lib/jquery.mobile-1.4.5/jquery-3.1.1.min.js"></script>
+	    <script src="spec/lib/jquery.mobile-1.4.5/jquery-3.1.1.min.js"></script>
 	    <script src="spec/lib/jquery.mobile-1.4.5/jquery.mobile-1.4.5.min.js"></script>
         <script src="js/jquery.cookie.js"></script>
         <script src="js/common.js"></script>
+        <script src="js/kakeiData.js"></script>
         <script src="js/tableController.js"></script>
         <script>
         	document.addEventListener("deviceready", onDeviceReady, false);
@@ -42,6 +43,7 @@
 	            var settingInfo = new TableSettingInfo($("#dataTable"), 20, "item");
                 // テーブル表示情報設定
 				var columnInfoList = [];
+				columnInfoList.push(new ColumnSettingInfo("No", "id"));
 				columnInfoList.push(new ColumnSettingInfo("日付", "addDate"));
 	            columnInfoList.push(new ColumnSettingInfo("項目", "item"));
 	            columnInfoList.push(new ColumnSettingInfo("値段", "price"));
@@ -55,7 +57,7 @@
 		        	var jsonData = JSON.parse(kakeiData);
 		            for(var i in jsonData) {
 		                var kakeiData = jsonData[i];
-		                var kakeiInfo = new KakeiInfo(kakeiData.addDate, kakeiData.item, kakeiData.price, kakeiData.category);
+		                var kakeiInfo = new KakeiInfo(kakeiData.id, kakeiData.addDate, kakeiData.item, kakeiData.price, kakeiData.category);
 		                kakeiInfoList.push(kakeiInfo);
 		            }
 	        	}
@@ -72,29 +74,6 @@
 	            var addButtonObj = controller.getButtonByKey(TCAttr.BUTTON.ADD);
 	            $("#buttonArea").prepend(addButtonObj);
 	        };
-	        
-			/**
-			 * 家計情報
-			 * id ユーザID
-			 * name ユーザ名
-			 * index 表示順
-			 * pointInfoMap 得点情報マップ
-			*/
-			function KakeiInfo(addDate, item, price, category){
-			    this.addDate = addDate;
-			    this.item = item;
-			    this.price = price;
-			    this.category = category;
-			    /* JSONData */
-			    this.getJSONData = function() {
-			        var JSONData = {};
-			        JSONData["addDate"] = this.addDate;
-			        JSONData["item"] = this.item;
-			        JSONData["price"] = this.price;
-			        JSONData["category"] = this.category;
-			        return JSONData;
-			    };
-			};
         </script>
     </head>
     <body>
