@@ -69,8 +69,11 @@
         };
 
         function nextId(kakeiInfoList) {
-            var newId = kakeiInfoList[kakeiInfoList.length - 1].id + 1;
-            return newId;
+            var maxId = 0;
+            if(kakeiInfoList[kakeiInfoList.length - 1]) {
+            	maxId = kakeiInfoList[kakeiInfoList.length - 1].id;
+            }
+            return maxId + 1;
         }
 
         function isVallidate(groupName) {
@@ -124,7 +127,7 @@
 							<label for="category">カテゴリ</label>
 							<select name="category" id="category">
 							<option value="タバコ">タバコ</option>
-							<option value="食費">食費aaaaaaaaa</option>
+							<option value="食費">食費</option>
 							<option value="交通費">交通費</option>
 							</select>
 						</div>
