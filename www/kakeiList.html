@@ -25,22 +25,22 @@
             function createTable() {
 	            // ボタン処理設定
 	            var buttonInfoMap = {};
-	            buttonInfoMap[TCAttr.BUTTON.ADD] = new ButtonSettingInfo(TCAttr.BUTTON.ADD, "追加", "ui-btn ui-icon-forward ui-btn-icon-left ui-corner-all ui-btn-b", function(id) {
-                    var param = "id=" + id;
+	            buttonInfoMap[TCAttr.BUTTON.ADD] = new ButtonSettingInfo(TCAttr.BUTTON.ADD, "追加", "ui-btn ui-icon-forward ui-btn-icon-left ui-corner-all ui-btn-b", function(item) {
+                    var param = "item=" + item;
                     COMMON.Event.moveEditPage("addSheet.html", [param]);
 	            });
-	            buttonInfoMap[TCAttr.BUTTON.EDIT] = new ButtonSettingInfo(TCAttr.BUTTON.EDIT, "編集", "tableButton ui-corner-all ui-btn-b", function(id) {
-                      var param = "id=" + id;
+	            buttonInfoMap[TCAttr.BUTTON.EDIT] = new ButtonSettingInfo(TCAttr.BUTTON.EDIT, "編集", "tableButton ui-corner-all ui-btn-b", function(item) {
+                      var param = "item=" + item;
                       COMMON.Event.moveEditPage("addSheet.html", [param]);
 	            });
-	            buttonInfoMap[TCAttr.BUTTON.DEL] = new ButtonSettingInfo(TCAttr.BUTTON.DEL, "削除", "tableButton ui-corner-all ui-btn-b", function(id) {
+	            buttonInfoMap[TCAttr.BUTTON.DEL] = new ButtonSettingInfo(TCAttr.BUTTON.DEL, "削除", "tableButton ui-corner-all ui-btn-b", function(item) {
                     //var deleteUser = m_gameDateInfo.deleteUserInfo(id);
                     //if(deleteUser) {
                     //    location.reload();
                     //}
 	            });
 	            
-	            var settingInfo = new TableSettingInfo($("#dataTable"), 20, "id");
+	            var settingInfo = new TableSettingInfo($("#dataTable"), 20, "item");
                 // テーブル表示情報設定
 				var columnInfoList = [];
 				columnInfoList.push(new ColumnSettingInfo("No", "id"));
