@@ -1,140 +1,170 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset="utf-8" />
-    <meta name="format-detection" content="telephone=no" />
-    <meta name="msapplication-tap-highlight" content="no" />
-    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width" />
-    <title>家計追加</title>
+		<head>
+	<meta charset="utf-8" />
+	<meta name="format-detection" content="telephone=no" />
+	<meta name="msapplication-tap-highlight" content="no" />
+	<meta name="viewport"
+	content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width" />
+	<title>家計追加</title>
 	<link rel="stylesheet" type="text/css" href="css/index.css" />
 	<link rel="stylesheet" type="text/css" href="css/kakeibo.css" />
-	<link rel="stylesheet" type="text/css" href="spec/lib/jquery.mobile-1.4.5/jquery.mobile-1.4.5.min.css">
+	<link rel="stylesheet" type="text/css"
+		href="spec/lib/jquery.mobile-1.4.5/jquery.mobile-1.4.5.min.css">
 	<script src="spec/lib/jquery.mobile-1.4.5/jquery-3.1.1.min.js"></script>
 	<script src="spec/lib/jquery.mobile-1.4.5/jquery.mobile-1.4.5.min.js"></script>
+	<script src="spec/lib/jasmine-1.2.0/jasmine-html.js"></script>
+	<script src="spec/lib/jasmine-1.2.0/jasmine.js"></script>
 	<script src="cordova.js"></script>
 	<script src="js/jquery.cookie.js"></script>
 	<script src="js/common.js"></script>
 	<script src="js/kakeiData.js"></script>
 	<script src="js/tableController.js"></script>
 	<script>
-	    var m_id;
-	    
-	    document.addEventListener("deviceready", init, false);
-	    function init() {
-			m_id = COMMON.Event.getParamByKey("id");
-	    };
+		    var m_id;
+		    var m_update = false;
+		    
+		    document.addEventListener("deviceready", init, false);
+		    function init() {
+				m_id = COMMON.Event.getParamByKey("id");
+	        	var kakeiData = localStorage["kakei"];
+	        	if(kakeiData) {
+	        		var jsonData = JSON.parse(kakeiData);
+		            for(var i in jsonData) {
+			            if(jsonData[i].id == m_id) {
+			            	var kakei = jsonData[i];
+			            	$("#addDate").val(kakei.addDate);
+			            	$("#item").val(kakei.item);
+			            	$("#price").val(kakei.price);
+			            	$("#category").val(kakei.category);
+			            	m_update = true;
+				        }
+		            }
+	        	}
+		    };
+		
+	        function save() {
+	            var addDate = $("#addDate").val();
+				var item = $("#item").val();
+				var price =  $("#price").val();
+				var category =  $("#category").val();
+	            if(isVallidate(item) == false) {
+	                return;
+	            }
+		         var kakeiInfoList = [];
+		         var kakeiData = localStorage["kakei"];
+		         if(kakeiData) {
+				      //一度全部のデータを取ってくる
+			          var jsonData = JSON.parse(kakeiData);
+			          if(jsonData) {
+			            for(var i in jsonData) {
+			                var kakeiData = jsonData[i];
+			                 //更新の場合
+							if(m_id && kakeiData.id == m_id) {
+								var updateKakeiInfo = new KakeiInfo(kakeiData.id, addDate, item, price, category);
+								kakeiInfoList.push(updateKakeiInfo);
+							} else {
+								var kakeiInfo = new KakeiInfo(kakeiData.id, kakeiData.addDate, kakeiData.item, kakeiData.price, kakeiData.category);
+								kakeiInfoList.push(kakeiInfo);
+							}
+		      		   }
+			          }
+		         //新規登録時は配列の最後にpush
+                 if(m_update == false) {
+		            var newKakeiInfo = new KakeiInfo(nextId(kakeiInfoList), addDate, item, price, category);
+		            kakeiInfoList.push(newKakeiInfo);
+                 }
+		            localStorage["kakei"] = window.JSON.stringify(kakeiInfoList);
+		            history.back();
+	        	}
+	        };
 	
-        function save() {
-            var addDate = $("#addDate").val();
-			var item = $("#item").val();
-			var price =  $("#price").val();
-			var category =  $("#category").val();
-            if(isVallidate(item) == false) {
-                return;
-            }
-
-	         var kakeiInfoList = [];
-	         var kakeiData = localStorage["kakei"];
-	         if(kakeiData) {
-	          var jsonData = JSON.parse(kakeiData);
-	             for(var i in jsonData) {
-	                 var kakeiData = jsonData[i];
-	                 var kakeiInfo = new KakeiInfo(kakeiData.id, kakeiData.addDate, kakeiData.item, kakeiData.price, kakeiData.category);
-	                 kakeiInfoList.push(kakeiInfo);
-	             }
-	         }
-	            var newKakeiInfo = new KakeiInfo(nextId(kakeiInfoList), addDate, item, price, category);
-	            kakeiInfoList.push(newKakeiInfo);
-	            
-	            localStorage["kakei"] = window.JSON.stringify(kakeiInfoList);
-	            history.back();
-        };
-
-        function nextId(kakeiInfoList) {
-            var maxId = 0;
-            if(kakeiInfoList[kakeiInfoList.length - 1] && kakeiInfoList[kakeiInfoList.length - 1].id) {
-            	maxId = kakeiInfoList[kakeiInfoList.length - 1].id;
-            }
-            return maxId + 1;
-        }
-
-        function isVallidate(groupName) {
-            if(!groupName) {
-                alert("グループ名を記述してください。");
-                return false;
-            }
-            return true;
-        }
-	</script>
-</head>
-<body>
-	<div id="home" data-roloe="page">
-		<div data-role="header" id="addSheetHeader">
-			<a href="javascript:history.back()" class="ui-btn ui-mini ui-btn-inline ui-btn-left ui-corner-all ui-icon-back ui-btn-icon-left">Back</a>
-			<h1>家計追加</h1>
+	        function nextId(kakeiInfoList) {
+	            var maxId = 0;
+	            if(kakeiInfoList[kakeiInfoList.length - 1] && kakeiInfoList[kakeiInfoList.length - 1].id) {
+	            	maxId = kakeiInfoList[kakeiInfoList.length - 1].id;
+	            }
+	            return maxId + 1;
+	        }
+	
+	        function isVallidate(groupName) {
+	            if(!groupName) {
+	                alert("グループ名を記述してください。");
+	                return false;
+	            }
+	            return true;
+	        }
+		</script>
+	</head>
+	<body>
+		<div id="home" data-roloe="page">
+			<div data-role="header" id="addSheetHeader">
+				<a href="javascript:history.back()"
+					class="ui-btn ui-mini ui-btn-inline ui-btn-left ui-corner-all ui-icon-back ui-btn-icon-left">Back</a>
+				<h1>家計追加</h1>
+			</div>
+			<table id="table-1">
+				<thead>
+				</thead>
+				<tbody>
+					<tr>
+						<td style="width: 500px">
+							<div class="ui-field-contain">
+								<label for="addDate">日付</label> <input name="addDate"
+									id="addDate" data-clear-btn="true" value="" type="datetime" />
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<div class="ui-field-contain">
+								<label for="item">項目</label> <input name="item" id="item"
+									data-clear-btn="true" value="" type="text" />
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<div class="ui-field-contain">
+								<label for="price">値段</label> <input name="price" id="price"
+									data-clear-btn="true" value="" type="text" />
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<div class="ui-field-contain">
+								<label for="category">カテゴリ</label> <select name="category"
+									id="category">
+									<option value="食費">食費</option>
+									<option value="嗜好品">嗜好品</option>
+									<option value="交通費">交通費</option>
+									<option value="家賃">家賃</option>
+									<option value="交際費">交際費</option>
+									<option value="水道代">水道代</option>
+									<option value="光熱費">光熱費</option>
+									<option value="酒">酒</option>
+								</select>
+							</div>
+						</td>
+					</tr>
+				</tbody>
+				<tfoot>
+				</tfoot>
+			</table>
+			<table>
+				<tr>
+					<td><a id="addButton"
+						class="ui-btn ui-icon-forward ui-btn-icon-left ui-corner-all ui-btn-b"
+						style="width: 100px" onClick="save()">追加</a></td>
+					<td><a href="javascript:history.back()" id="cancelButton"
+						class="ui-btn ui-icon-back ui-btn-icon-left ui-corner-all ui-btn-b"
+						style="width: 100px">キャンセル</a></td>
+				</tr>
+			</table>
+			<div data-role="footer" id="footer-1">
+				<h6></h6>
+			</div>
 		</div>
-		<table id="table-1">
-			<thead>
-			</thead>
-			<tbody>
-				<tr>
-					<td style="width:500px">
-						<div class="ui-field-contain">
-							<label for="addDate" >日付</label>
-							<input name="addDate" id="addDate" data-clear-btn="true" value="" type="datetime"/>
-						</div>
-					</td>
-				</tr>
-				<tr>
-					<td>
-						<div class="ui-field-contain">
-							<label for="item">項目</label>
-							<input name="item" id="item" data-clear-btn="true" value="" type="text"/>
-						</div>
-					</td>
-				</tr>
-				<tr>
-					<td>
-						<div class="ui-field-contain">
-							<label for="price">値段</label>
-							<input name="price" id="price" data-clear-btn="true" value="" type="text"/>
-						</div>
-					</td>				
-				</tr>
-				<tr>
-					<td>
-						<div class="ui-field-contain">
-							<label for="category">カテゴリ</label>
-							<select name="category" id="category">
-							<option value="食費">食費</option>
-							<option value="嗜好品">嗜好品</option>
-							<option value="交通費">交通費</option>
-							<option value="家賃">家賃</option>
-							<option value="交際費">交際費</option>
-							<option value="水道代">水道代</option>
-							<option value="光熱費">光熱費</option>
-							<option value="酒">酒</option>
-							</select>
-						</div>
-					</td>				
-				</tr>
-			</tbody>
-			<tfoot>
-			</tfoot>
-		</table>
-		<table>
-			<tr>
-				<td>
-					<a id="addButton" class="ui-btn ui-icon-forward ui-btn-icon-left ui-corner-all ui-btn-b"  style="width:100px" onClick="save()" >追加</a>
-				</td>
-				<td>
-					<a href="javascript:history.back()" id="cancelButton" class="ui-btn ui-icon-back ui-btn-icon-left ui-corner-all ui-btn-b"  style="width:100px">キャンセル</a>
-				</td>
-			</tr>
-		</table>
-		<div data-role="footer" id="footer-1">
-			<h6></h6>
-		</div>
-	</div>
-</body>
+	</body>
 </html>
