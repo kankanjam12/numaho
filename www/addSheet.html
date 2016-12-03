@@ -23,7 +23,7 @@
 	<script>
 		    var m_id;
 		    var m_update = false;
-		    
+
 		    document.addEventListener("deviceready", init, false);
 		    function init() {
 				m_id = COMMON.Event.getParamByKey("id");
@@ -42,7 +42,7 @@
 		            }
 	        	}
 		    };
-		
+
 	        function save() {
 	            var addDate = $("#addDate").val();
 				var item = $("#item").val();
@@ -74,11 +74,15 @@
 		            var newKakeiInfo = new KakeiInfo(nextId(kakeiInfoList), addDate, item, price, category);
 		            kakeiInfoList.push(newKakeiInfo);
                  }
-		            localStorage["kakei"] = window.JSON.stringify(kakeiInfoList);
-		            history.back();
+	        	} else {
+	        		//最初の1レコード登録時
+	        		var kakeiInfo = new KakeiInfo(1, addDate, item, price, category);
+	        		kakeiInfoList.push(kakeiInfo);
 	        	}
+	            localStorage["kakei"] = window.JSON.stringify(kakeiInfoList);
+	            history.back();
 	        };
-	
+
 	        function nextId(kakeiInfoList) {
 	            var maxId = 0;
 	            if(kakeiInfoList[kakeiInfoList.length - 1] && kakeiInfoList[kakeiInfoList.length - 1].id) {
@@ -86,7 +90,7 @@
 	            }
 	            return maxId + 1;
 	        }
-	
+
 	        function isVallidate(groupName) {
 	            if(!groupName) {
 	                alert("グループ名を記述してください。");
